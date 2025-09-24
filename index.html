@@ -2,40 +2,94 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <title>羽毛球场预约（示例前端）</title>
+  <title>吉大微服务</title>
   <style>
-    body { font-family: Arial, "Microsoft Yahei", sans-serif; padding: 20px; }
-    label { display:block; margin-top:10px; }
-    select, input { padding: 6px; width: 220px; }
-    button { margin-top: 12px; padding: 8px 14px; }
-    pre { background:#f6f6f6; padding:10px; }
+    body {
+      font-family: Arial, "Microsoft Yahei", sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background-color: #1e1e1e;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      width: 400px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #ffffff;
+    }
+    label {
+      display: block;
+      margin: 15px 0 5px;
+      font-weight: bold;
+      text-align: left;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #4cafef;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #4cafef, #1976d2);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #42a5f5, #1565c0);
+    }
+    pre {
+      margin-top: 20px;
+      text-align: left;
+      background: #222;
+      padding: 15px;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      color: #a5d6ff;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <h2>羽毛球场预约（示例前端）</h2>
+  <div class="container">
+    <h2>吉大微服务羽毛球预约</h2>
 
-  <label>选择用户（server-side 在 USERS 中预先配置 token/auth）：
+    <label>选择用户：</label>
     <select id="userSelect">
-      <option value="1">用户 1</option>
-      <option value="2">用户 2</option>
-      <option value="3">用户 3</option>
-      <option value="4">用户 4</option>
-      <option value="5">用户 5</option>
+      <option value="1">wancheng24</option>
+      <option value="2">mawq24</option>
+      <option value="3">zxzhang</option>
+      <option value="4">liu_dan</option>
+      <option value="5">yichen25</option>
     </select>
-  </label>
 
-  <label>选择场地（1-10，对应 ymq1-ymq10）：
-    <select id="placeSelect">
-      <!-- 1..10 -->
-      <script>
-        for(let i=1;i<=10;i++){
-          document.write(`<option value="${i}">${i}</option>`);
-        }
-      </script>
-    </select>
-  </label>
+    <label>选择场地：</label>
+    <select id="placeSelect"></select>
 
-  <label>选择时间段：
+    <label>选择时间段：</label>
     <select id="timeRangeSelect">
       <option>06:00-07:30</option>
       <option>07:30-10:00</option>
@@ -46,16 +100,26 @@
       <option>17:30-19:30</option>
       <option>19:30-21:30</option>
     </select>
-  </label>
 
-  <label><input type="checkbox" id="scheduleMidnight"> 在午夜（00:00）执行（否则立即执行）</label>
+    <label>
+      <input type="checkbox" id="scheduleMidnight"> 午夜自动执行
+    </label>
 
-  <button id="submitBtn">提交预约</button>
+    <button id="submitBtn">提交预约</button>
 
-  <h3>返回 / 日志</h3>
-  <pre id="output">等待操作...</pre>
+    <pre id="output"></pre>
+  </div>
 
   <script>
+    // 动态生成场地选项
+    const placeSelect = document.getElementById('placeSelect');
+    for(let i=1;i<=10;i++){
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = "羽毛球 " + i;
+      placeSelect.appendChild(opt);
+    }
+
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const user_id = parseInt(document.getElementById('userSelect').value,10);
       const place = parseInt(document.getElementById('placeSelect').value,10);
@@ -63,20 +127,19 @@
       const schedule_at_midnight = document.getElementById('scheduleMidnight').checked;
 
       const body = { user_id, place, time_range, schedule_at_midnight };
-
-      document.getElementById('output').textContent = "正在发送请求...";
+      const output = document.getElementById('output');
+      output.textContent = "正在提交，请稍候...";
 
       try {
-       const resp = await fetch('https://mindful-spirit-production-a4b6.up.railway.app/reserve', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(body)
-});
-
+        const resp = await fetch('https://mindful-spirit-production-a4b6.up.railway.app/reserve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
         const data = await resp.json();
-        document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        output.textContent = JSON.stringify(data, null, 2);
       } catch (e) {
-        document.getElementById('output').textContent = "请求失败: " + e;
+        output.textContent = "请求失败: " + e;
       }
     });
   </script>
